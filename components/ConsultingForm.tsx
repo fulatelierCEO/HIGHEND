@@ -27,12 +27,9 @@ export default function ConsultingForm() {
     };
 
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/submit-inquiry`;
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/inquiries', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
@@ -65,20 +62,20 @@ export default function ConsultingForm() {
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-widest text-neutral-400">Full Name</label>
-              <Input name="name" placeholder="Jane Doe" required className="border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:border-black transition-colors" />
+              <label className="text-xs uppercase tracking-widest text-neutral-400 font-light">Full Name</label>
+              <Input name="name" placeholder="Jane Doe" required className="border-0 border-b rounded-none px-0 font-light focus-visible:ring-0 focus-visible:border-black transition-colors" />
             </div>
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-widest text-neutral-400">Email Address</label>
-              <Input name="email" type="email" placeholder="jane@example.com" required className="border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:border-black transition-colors" />
+              <label className="text-xs uppercase tracking-widest text-neutral-400 font-light">Email Address</label>
+              <Input name="email" type="email" placeholder="jane@example.com" required className="border-0 border-b rounded-none px-0 font-light focus-visible:ring-0 focus-visible:border-black transition-colors" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-widest text-neutral-400">Project Type</label>
+              <label className="text-xs uppercase tracking-widest text-neutral-400 font-light">Project Type</label>
               <Select name="projectType" required value={projectType} onValueChange={setProjectType}>
-                <SelectTrigger className="border-0 border-b rounded-none px-0 shadow-none focus:ring-0">
+                <SelectTrigger className="border-0 border-b rounded-none px-0 font-light shadow-none focus:ring-0">
                   <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,9 +87,9 @@ export default function ConsultingForm() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-widest text-neutral-400">Budget Range</label>
+              <label className="text-xs uppercase tracking-widest text-neutral-400 font-light">Budget Range</label>
               <Select name="budget" required value={budget} onValueChange={setBudget}>
-                <SelectTrigger className="border-0 border-b rounded-none px-0 shadow-none focus:ring-0">
+                <SelectTrigger className="border-0 border-b rounded-none px-0 font-light shadow-none focus:ring-0">
                   <SelectValue placeholder="Select a range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,8 +103,8 @@ export default function ConsultingForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-widest text-neutral-400">Project Brief</label>
-            <Textarea name="message" placeholder="Describe your product vision..." required className="min-h-[150px] border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:border-black transition-colors resize-none" />
+            <label className="text-xs uppercase tracking-widest text-neutral-400 font-light">Project Brief</label>
+            <Textarea name="message" placeholder="Describe your product vision..." required className="min-h-[150px] border-0 border-b rounded-none px-0 font-light focus-visible:ring-0 focus-visible:border-black transition-colors resize-none" />
           </div>
 
           <Button type="submit" disabled={loading} className="w-full bg-black text-white hover:bg-neutral-800 py-8 text-lg font-light uppercase tracking-widest">

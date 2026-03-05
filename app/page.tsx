@@ -6,6 +6,7 @@ import { supabase, Template, WorkshopLog } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, ArrowRight, ExternalLink, Calendar } from 'lucide-react';
+import ConsultingForm from '@/components/ConsultingForm';
 
 export default function Home() {
   const [featuredTemplates, setFeaturedTemplates] = useState<Template[]>([]);
@@ -212,6 +213,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <ConsultingForm />
 
       <footer className="border-t border-neutral-200/60 py-16">
         <div className="max-w-7xl mx-auto px-8 lg:px-12">
