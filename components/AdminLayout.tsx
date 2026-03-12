@@ -4,14 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import {
-  LayoutDashboard,
-  Package,
-  Video,
-  Users,
-  LogOut,
-  Loader2
-} from 'lucide-react';
+import { LayoutDashboard, Package, Video, Users, LogOut, Loader as Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
