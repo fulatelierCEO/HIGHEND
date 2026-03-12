@@ -153,14 +153,6 @@ export default function WorkshopLogPage() {
                       View Template
                     </Button>
                   </Link>
-                  {relatedTemplate.demo_url && (
-                    <Link href={relatedTemplate.demo_url} target="_blank">
-                      <Button size="sm" variant="outline">
-                        <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                        Demo
-                      </Button>
-                    </Link>
-                  )}
                   <span className="text-lg font-light ml-auto">
                     ${relatedTemplate.price.toFixed(2)}
                   </span>
