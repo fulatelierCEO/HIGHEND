@@ -134,11 +134,13 @@ export default function WorkshopLogPage() {
             <h2 className="text-2xl font-light mb-6">Related Template</h2>
             <div className="flex gap-6 p-6 bg-neutral-50 border border-neutral-200">
               <div className="w-48 h-32 flex-shrink-0 bg-neutral-100 overflow-hidden">
-                <img
-                  src={relatedTemplate.image_url}
-                  alt={relatedTemplate.name}
-                  className="w-full h-full object-cover"
-                />
+                {relatedTemplate.image_url && (
+                  <img
+                    src={relatedTemplate.image_url}
+                    alt={relatedTemplate.name}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-light mb-2">{relatedTemplate.name}</h3>
@@ -146,7 +148,7 @@ export default function WorkshopLogPage() {
                   {relatedTemplate.description}
                 </p>
                 <div className="flex items-center gap-3">
-                  <Link href={`/products/${relatedTemplate.slug}`}>
+                  <Link href={`/products/${relatedTemplate.id}`}>
                     <Button size="sm">
                       View Template
                     </Button>

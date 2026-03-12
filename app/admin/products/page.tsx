@@ -200,17 +200,12 @@ export default function ProductManager() {
             <h1 className="font-serif text-5xl text-[#1A1A1A] mb-2">Products</h1>
             <p className="text-sm text-[#1A1A1A]/60">Manage SaaS, Templates, and Custom Services</p>
           </div>
-          <Button
-            onClick={() => {
-              setShowForm(!showForm);
-              setEditingProduct(null);
-              resetForm();
-            }}
-            className="bg-[#1A1A1A] text-white hover:bg-[#1A1A1A]/80 uppercase tracking-widest"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
+          <a href="/admin/products/new">
+            <Button className="bg-[#1A1A1A] text-white hover:bg-[#1A1A1A]/80 uppercase tracking-widest">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </a>
         </div>
 
         {showForm && (
