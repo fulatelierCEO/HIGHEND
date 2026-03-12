@@ -5,46 +5,35 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export type Template = {
+export type Product = {
   id: string;
   name: string;
-  slug: string;
-  description: string;
+  description: string | null;
+  type: 'saas' | 'template' | 'service';
   price: number;
-  category_id: string;
-  collection_id: string | null;
-  image_url: string;
-  gallery_images: string[];
-  featured: boolean;
-  stock: number;
-  demo_url: string;
-  tech_stack: string[];
-  features: string[];
+  stripe_price_id: string | null;
+  stripe_product_id: string | null;
+  status: 'live' | 'draft';
+  file_url: string | null;
+  image_url: string | null;
+  features: any;
   created_at: string;
+  updated_at: string;
 };
 
-export type Product = Template;
+export type Template = Product;
 
-export type Category = {
+export type BuildInPublic = {
   id: string;
-  name: string;
-  slug: string;
-  description: string;
-  image_url: string;
+  title: string;
+  caption: string | null;
+  video_url: string;
+  product_id: string | null;
+  thumbnail_url: string | null;
+  published: boolean | null;
+  published_at: string | null;
   created_at: string;
 };
-
-export type TemplateCollection = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  image_url: string;
-  featured: boolean;
-  created_at: string;
-};
-
-export type Collection = TemplateCollection;
 
 export type WorkshopLog = {
   id: string;

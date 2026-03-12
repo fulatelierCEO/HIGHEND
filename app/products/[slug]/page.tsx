@@ -24,7 +24,8 @@ export default function ProductDetailPage() {
       const { data } = await supabase
         .from('products')
         .select('*')
-        .eq('slug', params.slug)
+        .eq('id', params.slug)
+        .eq('status', 'live')
         .maybeSingle();
 
       if (data) {
@@ -33,7 +34,8 @@ export default function ProductDetailPage() {
         const { data: related } = await supabase
           .from('products')
           .select('*')
-          .eq('category_id', data.category_id)
+          .eq('type', data.type)
+          .eq('status', 'live')
           .neq('id', data.id)
           .limit(3);
 
@@ -115,26 +117,21 @@ export default function ProductDetailPage() {
         <div className="grid lg:grid-cols-2 gap-16 mb-24">
           <div>
             <div className="aspect-[3/4] mb-4 overflow-hidden bg-neutral-100 sticky top-8">
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+              {product.image_url && (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
           </div>
 
           <div className="lg:py-8">
             <div className="mb-8">
-              {product.stock < 5 && product.stock > 0 && (
-                <Badge className="mb-4 bg-amber-500 text-white border-0">
-                  Only {product.stock} left in stock
-                </Badge>
-              )}
-              {product.stock === 0 && (
-                <Badge className="mb-4 bg-neutral-900 text-white border-0">
-                  Sold Out
-                </Badge>
-              )}
+              <Badge className="mb-4 bg-neutral-900 text-white border-0">
+                {product.type.toUpperCase()}
+              </Badge>
 
               <h1 className="text-5xl font-light tracking-tight mb-4 leading-tight">
                 {product.name}
@@ -142,6 +139,7 @@ export default function ProductDetailPage() {
 
               <p className="text-3xl font-light mb-8">
                 ${product.price.toFixed(2)}
+                {product.type === 'saas' && <span className="text-xl text-neutral-500">/mo</span>}
               </p>
 
               <div className="prose prose-lg max-w-none font-light text-neutral-700 leading-relaxed">
@@ -150,66 +148,31 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="border-t border-neutral-200 pt-8 mb-8">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-sm font-medium">Quantity</span>
-                <div className="flex items-center border border-neutral-300 rounded-md">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-3 hover:bg-neutral-100 transition-colors"
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="px-6 text-center min-w-[3rem]">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="p-3 hover:bg-neutral-100 transition-colors"
-                    disabled={quantity >= product.stock}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
               <Button
                 size="lg"
                 className="w-full mb-4"
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
               >
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                {product.type === 'saas' ? 'Subscribe Now' : 'Purchase'}
               </Button>
+              {product.stripe_price_id && (
+                <p className="text-xs text-neutral-500 text-center">
+                  Secure checkout powered by Stripe
+                </p>
+              )}
             </div>
 
-            <div className="border-t border-neutral-200 pt-8 space-y-6">
-              <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-neutral-600 mt-1" />
-                <div>
-                  <h3 className="font-medium mb-1">Free Shipping</h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Complimentary shipping on all orders
-                  </p>
-                </div>
+            {product.features && Array.isArray(product.features) && product.features.length > 0 && (
+              <div className="border-t border-neutral-200 pt-8 space-y-4">
+                <h3 className="font-medium mb-4">Features</h3>
+                {product.features.map((feature: string, index: number) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-neutral-600 mt-1" />
+                    <p className="text-sm text-neutral-600 font-light">{feature}</p>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-neutral-600 mt-1" />
-                <div>
-                  <h3 className="font-medium mb-1">Authenticity Guaranteed</h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Every piece is carefully verified
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-neutral-600 mt-1" />
-                <div>
-                  <h3 className="font-medium mb-1">30-Day Returns</h3>
-                  <p className="text-sm text-neutral-600 font-light">
-                    Easy returns within 30 days of delivery
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -220,20 +183,25 @@ export default function ProductDetailPage() {
               {relatedProducts.map((relatedProduct) => (
                 <Link
                   key={relatedProduct.id}
-                  href={`/products/${relatedProduct.slug}`}
+                  href={`/products/${relatedProduct.id}`}
                   className="group"
                 >
                   <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-neutral-100">
-                    <img
-                      src={relatedProduct.image_url}
-                      alt={relatedProduct.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {relatedProduct.image_url && (
+                      <img
+                        src={relatedProduct.image_url}
+                        alt={relatedProduct.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    )}
                   </div>
                   <h3 className="text-xl font-light mb-1 group-hover:text-neutral-600 transition-colors">
                     {relatedProduct.name}
                   </h3>
-                  <p className="text-lg font-light">${relatedProduct.price.toFixed(2)}</p>
+                  <p className="text-lg font-light">
+                    ${relatedProduct.price.toFixed(2)}
+                    {relatedProduct.type === 'saas' && <span className="text-sm text-neutral-500">/mo</span>}
+                  </p>
                 </Link>
               ))}
             </div>

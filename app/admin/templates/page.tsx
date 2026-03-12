@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase, Template } from '@/lib/supabase';
+import { supabase, Product } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,56 +28,57 @@ import { Plus, Search, CreditCard as Edit, Trash2, ExternalLink } from 'lucide-r
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminTemplatesPage() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchTemplates();
+    fetchProducts();
   }, []);
 
   useEffect(() => {
-    const filtered = templates.filter(t =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-    setFilteredTemplates(filtered);
-  }, [searchQuery, templates]);
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
 
-  async function fetchTemplates() {
+  async function fetchProducts() {
     const { data } = await supabase
-      .from('templates')
+      .from('products')
       .select('*')
+      .in('type', ['template', 'saas'])
       .order('created_at', { ascending: false });
 
     if (data) {
-      setTemplates(data);
-      setFilteredTemplates(data);
+      setProducts(data);
+      setFilteredProducts(data);
     }
     setLoading(false);
   }
 
   async function handleDelete(id: string) {
     const { error } = await supabase
-      .from('templates')
+      .from('products')
       .delete()
       .eq('id', id);
 
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to delete template",
+        description: "Failed to delete product",
         variant: "destructive"
       });
     } else {
       toast({
         title: "Success",
-        description: "Template deleted successfully"
+        description: "Product deleted successfully"
       });
-      fetchTemplates();
+      fetchProducts();
     }
     setDeleteId(null);
   }
@@ -116,13 +117,13 @@ export default function AdminTemplatesPage() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-light tracking-tight mb-2">Templates</h1>
-            <p className="text-neutral-600 font-light">{filteredTemplates.length} total templates</p>
+            <h1 className="text-4xl font-light tracking-tight mb-2">Products</h1>
+            <p className="text-neutral-600 font-light">{filteredProducts.length} total products</p>
           </div>
-          <Link href="/admin/templates/new">
+          <Link href="/admin/products">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Add New Template
+              Manage Products
             </Button>
           </Link>
         </div>
@@ -131,7 +132,7 @@ export default function AdminTemplatesPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <Input
-              placeholder="Search templates..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -144,78 +145,61 @@ export default function AdminTemplatesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Tech Stack</TableHead>
+                <TableHead>Stripe ID</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTemplates.map((template) => (
-                <TableRow key={template.id}>
+              {filteredProducts.map((product) => (
+                <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-12 bg-neutral-100 rounded overflow-hidden flex-shrink-0">
-                        <img
-                          src={template.image_url}
-                          alt={template.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
                       <div>
-                        <div className="font-medium">{template.name}</div>
-                        <div className="text-sm text-neutral-500 line-clamp-1">{template.description}</div>
+                        <div className="font-medium">{product.name}</div>
+                        <div className="text-sm text-neutral-500 line-clamp-1">{product.description}</div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono">${template.price.toFixed(2)}</TableCell>
                   <TableCell>
-                    {template.stock > 0 ? (
-                      <span className="text-sm">{template.stock}</span>
-                    ) : (
-                      <Badge variant="secondary">Out of Stock</Badge>
-                    )}
+                    <Badge variant="secondary" className="text-xs uppercase">
+                      {product.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono">
+                    ${product.price.toFixed(2)}
+                    {product.type === 'saas' && <span className="text-xs text-neutral-500">/mo</span>}
                   </TableCell>
                   <TableCell>
-                    {template.featured ? (
-                      <Badge>Featured</Badge>
-                    ) : (
-                      <Badge variant="outline">Active</Badge>
-                    )}
+                    <Badge variant={product.status === 'live' ? 'default' : 'outline'}>
+                      {product.status}
+                    </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {template.tech_stack?.slice(0, 2).map((tech) => (
-                        <Badge key={tech} variant="secondary" className="text-xs">
-                          {tech}
-                        </Badge>
-                      ))}
-                      {template.tech_stack?.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{template.tech_stack.length - 2}
-                        </Badge>
-                      )}
-                    </div>
+                  <TableCell className="text-sm text-neutral-500">
+                    {product.stripe_price_id || '—'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {template.demo_url && (
-                        <Link href={template.demo_url} target="_blank">
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                      )}
-                      <Link href={`/admin/templates/${template.id}`}>
+                      <Link href={`/products/${product.id}`} target="_blank">
                         <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
+                          <ExternalLink className="w-4 h-4" />
                         </Button>
                       </Link>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setDeleteId(template.id)}
+                        onClick={() => setDeleteId(product.id)}
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </Button>
@@ -227,9 +211,9 @@ export default function AdminTemplatesPage() {
           </Table>
         </div>
 
-        {filteredTemplates.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg border border-neutral-200">
-            <p className="text-neutral-600 font-light">No templates found</p>
+            <p className="text-neutral-600 font-light">No products found</p>
           </div>
         )}
       </div>
@@ -237,9 +221,9 @@ export default function AdminTemplatesPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this template? This action cannot be undone.
+              Are you sure you want to delete this product? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

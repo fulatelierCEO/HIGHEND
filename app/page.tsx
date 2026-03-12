@@ -73,11 +73,13 @@ export default function Home() {
       {heroTemplate && (
         <section className="relative h-[90vh] overflow-hidden">
           <div className="absolute inset-0">
-            <img
-              src={heroTemplate.image_url}
-              alt={heroTemplate.name}
-              className="w-full h-full object-cover"
-            />
+            {heroTemplate.image_url && (
+              <img
+                src={heroTemplate.image_url}
+                alt={heroTemplate.name}
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           </div>
           <div className="relative h-full max-w-7xl mx-auto px-8 lg:px-12 flex flex-col justify-end pb-24">
@@ -91,13 +93,13 @@ export default function Home() {
               {heroTemplate.description}
             </p>
             <div className="flex items-center gap-6">
-              <Link href={`/products/${heroTemplate.slug}`}>
+              <Link href={`/products/${heroTemplate.id}`}>
                 <Button size="lg" className="font-sans bg-white text-neutral-900 hover:bg-neutral-100 h-12 px-8">
                   View Details
                 </Button>
               </Link>
-              {heroTemplate.demo_url && (
-                <Link href={heroTemplate.demo_url} target="_blank" className="font-sans text-sm text-white hover:text-white/70 transition-colors flex items-center gap-2 border-b border-white pb-1">
+              {heroTemplate.file_url && (
+                <Link href={heroTemplate.file_url} target="_blank" className="font-sans text-sm text-white hover:text-white/70 transition-colors flex items-center gap-2 border-b border-white pb-1">
                   Live Preview
                   <ExternalLink className="w-4 h-4" />
                 </Link>
@@ -117,16 +119,18 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
             {featuredTemplates.map((template) => (
               <div key={template.id} className="group">
-                <Link href={`/products/${template.slug}`}>
+                <Link href={`/products/${template.id}`}>
                   <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-neutral-50">
-                    <img
-                      src={template.image_url}
-                      alt={template.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {template.image_url && (
+                      <img
+                        src={template.image_url}
+                        alt={template.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    )}
                   </div>
                 </Link>
-                <Link href={`/products/${template.slug}`}>
+                <Link href={`/products/${template.id}`}>
                   <h3 className="font-serif text-2xl mb-3 group-hover:text-neutral-500 transition-colors">
                     {template.name}
                   </h3>
@@ -135,9 +139,12 @@ export default function Home() {
                   {template.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <p className="font-sans text-lg">${template.price.toFixed(2)}</p>
-                  {template.demo_url && (
-                    <Link href={template.demo_url} target="_blank" className="font-sans text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-900 transition-colors flex items-center gap-1">
+                  <p className="font-sans text-lg">
+                    ${template.price.toFixed(2)}
+                    {template.type === 'saas' && <span className="text-sm text-neutral-500">/mo</span>}
+                  </p>
+                  {template.file_url && (
+                    <Link href={template.file_url} target="_blank" className="font-sans text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-900 transition-colors flex items-center gap-1">
                       Preview
                       <ExternalLink className="w-3 h-3" />
                     </Link>

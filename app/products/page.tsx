@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase, Template, Category } from '@/lib/supabase';
+import { supabase, Product } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import {
@@ -16,29 +16,28 @@ import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 
 export default function ProductsPage() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedType, setSelectedType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      const [templatesRes, categoriesRes] = await Promise.all([
-        supabase.from('templates').select('*').order('created_at', { ascending: false }),
-        supabase.from('categories').select('*')
-      ]);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('status', 'live')
+        .order('created_at', { ascending: false });
 
-      if (templatesRes.data) setTemplates(templatesRes.data);
-      if (categoriesRes.data) setCategories(categoriesRes.data);
+      if (data) setProducts(data);
       setLoading(false);
     }
 
     fetchData();
   }, []);
 
-  const filteredTemplates = templates
-    .filter(t => selectedCategory === 'all' || t.category_id === selectedCategory)
+  const filteredProducts = products
+    .filter(p => selectedType === 'all' || p.type === selectedType)
     .sort((a, b) => {
       if (sortBy === 'price-low') return a.price - b.price;
       if (sortBy === 'price-high') return b.price - a.price;
@@ -62,24 +61,24 @@ export default function ProductsPage() {
 
       <div className="max-w-7xl mx-auto px-8 lg:px-12 py-20">
         <div className="mb-20">
-          <p className="font-sans text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4">Collection</p>
-          <h1 className="font-serif text-7xl tracking-tight mb-6">All Templates</h1>
+          <p className="font-sans text-xs uppercase tracking-[0.2em] text-neutral-400 mb-4">Marketplace</p>
+          <h1 className="font-serif text-7xl tracking-tight mb-6">All Products</h1>
           <p className="font-sans text-lg text-neutral-600">
-            {filteredTemplates.length} {filteredTemplates.length === 1 ? 'template' : 'templates'}
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6 mb-16 pb-8 border-b border-neutral-200/60">
           <div className="flex flex-wrap gap-4 sm:ml-auto">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedType} onValueChange={setSelectedType}>
               <SelectTrigger className="w-[200px] font-sans">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
+                <SelectItem value="all">All Products</SelectItem>
+                <SelectItem value="saas">SaaS</SelectItem>
+                <SelectItem value="template">Templates</SelectItem>
+                <SelectItem value="service">Services</SelectItem>
               </SelectContent>
             </Select>
 
@@ -97,51 +96,50 @@ export default function ProductsPage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
-          {filteredTemplates.map((template) => (
-            <div key={template.id} className="group">
-              <Link href={`/products/${template.slug}`}>
+          {filteredProducts.map((product) => (
+            <div key={product.id} className="group">
+              <Link href={`/products/${product.id}`}>
                 <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-neutral-50">
-                  {template.stock < 5 && template.stock > 0 && (
-                    <Badge className="absolute top-4 left-4 z-10 bg-amber-500 text-white border-0 font-sans">
-                      Only {template.stock} left
+                  {product.type === 'saas' && (
+                    <Badge className="absolute top-4 left-4 z-10 bg-blue-500 text-white border-0 font-sans">
+                      SaaS
                     </Badge>
                   )}
-                  {template.stock === 0 && (
-                    <Badge className="absolute top-4 left-4 z-10 bg-neutral-900 text-white border-0 font-sans">
-                      Sold Out
+                  {product.type === 'service' && (
+                    <Badge className="absolute top-4 left-4 z-10 bg-purple-500 text-white border-0 font-sans">
+                      Service
                     </Badge>
                   )}
-                  <img
-                    src={template.image_url}
-                    alt={template.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
                 </div>
               </Link>
-              <Link href={`/products/${template.slug}`}>
+              <Link href={`/products/${product.id}`}>
                 <h3 className="font-serif text-2xl mb-3 group-hover:text-neutral-500 transition-colors">
-                  {template.name}
+                  {product.name}
                 </h3>
               </Link>
               <p className="font-sans text-neutral-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-                {template.description}
+                {product.description}
               </p>
               <div className="flex items-center justify-between">
-                <p className="font-sans text-lg">${template.price.toFixed(2)}</p>
-                {template.demo_url && (
-                  <Link href={template.demo_url} target="_blank" className="font-sans text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-900 transition-colors flex items-center gap-1">
-                    Preview
-                    <ExternalLink className="w-3 h-3" />
-                  </Link>
-                )}
+                <p className="font-sans text-lg">
+                  ${product.price.toFixed(2)}
+                  {product.type === 'saas' && <span className="text-sm text-neutral-500">/mo</span>}
+                </p>
               </div>
             </div>
           ))}
         </div>
 
-        {filteredTemplates.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-20">
-            <p className="font-sans text-neutral-600">No templates found matching your criteria.</p>
+            <p className="font-sans text-neutral-600">No products found matching your criteria.</p>
           </div>
         )}
       </div>

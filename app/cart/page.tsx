@@ -88,20 +88,22 @@ export default function CartPage() {
                     className="flex gap-6 pb-6 border-b border-neutral-200"
                   >
                     <Link
-                      href={`/products/${item.product.slug}`}
+                      href={`/products/${item.product.id}`}
                       className="flex-shrink-0 w-32 h-40 bg-neutral-100 overflow-hidden"
                     >
-                      <img
-                        src={item.product.image_url}
-                        alt={item.product.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
+                      {item.product.image_url && (
+                        <img
+                          src={item.product.image_url}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      )}
                     </Link>
 
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <Link
-                          href={`/products/${item.product.slug}`}
+                          href={`/products/${item.product.id}`}
                           className="text-xl font-light hover:text-neutral-600 transition-colors"
                         >
                           {item.product.name}
@@ -123,7 +125,6 @@ export default function CartPage() {
                           <button
                             onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)}
                             className="p-2 hover:bg-neutral-100 transition-colors"
-                            disabled={item.quantity >= item.product.stock}
                           >
                             <Plus className="w-4 h-4" />
                           </button>
