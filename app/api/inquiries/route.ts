@@ -12,11 +12,23 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, projectType, budget, message } = body;
+    console.log('Incoming Inquiry Body:', body);
 
-    if (!name || !email || !projectType || !budget || !message) {
+    const { name, email, projectType, budget, message, projectBrief } = body;
+
+    const finalMessage = message || projectBrief;
+    const finalBudget = budget || body.budgetRange;
+
+    const missingFields = [];
+    if (!name) missingFields.push('name');
+    if (!email) missingFields.push('email');
+    if (!projectType) missingFields.push('projectType');
+    if (!finalBudget) missingFields.push('budget');
+    if (!finalMessage) missingFields.push('message');
+
+    if (missingFields.length > 0) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: `Missing field: ${missingFields.join(', ')}` },
         { status: 400 }
       );
     }
@@ -28,8 +40,8 @@ export async function POST(request: NextRequest) {
           full_name: name,
           email_address: email,
           project_type: projectType,
-          budget_range: budget,
-          project_brief: message,
+          budget_range: finalBudget,
+          project_brief: finalMessage,
         },
       ])
       .select()
@@ -44,7 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (process.env.RESEND_API_KEY) {
+    if (process.env.RESEND_API_KEY && process.env.RESEND_DOMAIN_VERIFIED === 'true') {
       try {
         await resend.emails.send({
           from: 'Atelier <support@fulatelier.com>',
@@ -63,12 +75,12 @@ export async function POST(request: NextRequest) {
               <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #737373; font-weight: 300; margin-bottom: 8px;">Project Information</h2>
                 <p style="margin: 4px 0;"><strong>Type:</strong> ${projectType}</p>
-                <p style="margin: 4px 0;"><strong>Budget:</strong> ${budget}</p>
+                <p style="margin: 4px 0;"><strong>Budget:</strong> ${finalBudget}</p>
               </div>
 
               <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #737373; font-weight: 300; margin-bottom: 8px;">Project Brief</h2>
-                <p style="line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                <p style="line-height: 1.6; white-space: pre-wrap;">${finalMessage}</p>
               </div>
 
               <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #e5e5e5; font-size: 12px; color: #737373;">
@@ -107,7 +119,7 @@ export async function POST(request: NextRequest) {
                             <div style="width: 60px; height: 1px; background-color: #1A1A1A; margin: 32px 0;"></div>
 
                             <p style="font-size: 16px; line-height: 1.8; color: #1A1A1A; margin: 0 0 24px 0; font-weight: 300;">
-                              We've received your inquiry for <strong style="font-weight: 500;">${projectType}</strong> with a budget range of <strong style="font-weight: 500;">${budget}</strong>.
+                              We've received your inquiry for <strong style="font-weight: 500;">${projectType}</strong> with a budget range of <strong style="font-weight: 500;">${finalBudget}</strong>.
                             </p>
 
                             <p style="font-size: 16px; line-height: 1.8; color: #1A1A1A; margin: 0 0 32px 0; font-weight: 300;">
@@ -119,7 +131,7 @@ export async function POST(request: NextRequest) {
                                 Your Project Brief
                               </p>
                               <p style="font-family: 'Playfair Display', serif; font-size: 15px; line-height: 1.7; color: #1A1A1A; margin: 0; white-space: pre-wrap; font-weight: 400;">
-                                ${message}
+                                ${finalMessage}
                               </p>
                             </div>
 
@@ -166,6 +178,8 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error('Email error:', emailError);
       }
+    } else if (process.env.RESEND_API_KEY && process.env.RESEND_DOMAIN_VERIFIED !== 'true') {
+      console.log('Resend API key found but domain not verified. Skipping email send.');
     }
 
     return NextResponse.json({ success: true, lead });
