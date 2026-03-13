@@ -14,8 +14,8 @@ export function PurchaseThankYouEmail({
   purchaseDate,
 }: PurchaseEmailProps) {
   const buttonUrl = productType === 'template'
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/library`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`;
+    ? 'https://fulatelier.com/library'
+    : 'https://fulatelier.com/dashboard';
 
   const buttonText = productType === 'template'
     ? 'Access Your Download'
@@ -133,7 +133,7 @@ export function PurchaseThankYouEmail({
           <tr>
             <td style="padding-top: 60px; padding-bottom: 40px; text-align: center; border-top: 1px solid #e5e5e5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #999999; font-weight: 300;">
-                Questions? Contact us at ${process.env.ADMIN_EMAIL}
+                Questions? Contact us at support@fulatelier.com
               </p>
               <p style="margin: 0; font-size: 13px; color: #999999; font-weight: 300;">
                 © ${new Date().getFullYear()} Atelier. All rights reserved.

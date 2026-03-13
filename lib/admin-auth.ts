@@ -1,11 +1,17 @@
 import { supabase } from './supabase';
 
+const ADMIN_EMAIL = 'fulatelier@gmail.com';
+
 export async function isAdmin(): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return false;
+    }
+
+    if (user.email === ADMIN_EMAIL) {
+      return true;
     }
 
     const { data: adminUser, error } = await supabase
