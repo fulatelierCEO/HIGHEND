@@ -22,25 +22,24 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: lead, error: dbError } = await supabase
-      .from('leads')
+      .from('inquiries')
       .insert([
         {
-          client_name: name,
-          client_email: email,
-          project_intent: projectType,
+          full_name: name,
+          email_address: email,
           project_type: projectType,
           budget_range: budget,
-          message: message,
-          status: 'new',
+          project_brief: message,
         },
       ])
       .select()
       .single();
 
     if (dbError) {
-      console.error('Database error:', dbError);
+      console.error('Database error saving inquiry:', dbError);
+      console.error('Error details:', JSON.stringify(dbError, null, 2));
       return NextResponse.json(
-        { error: 'Failed to save inquiry' },
+        { error: 'Failed to save inquiry', details: dbError.message },
         { status: 500 }
       );
     }
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (process.env.RESEND_API_KEY) {
       try {
         await resend.emails.send({
-          from: 'ATELIER <support@fulatelier.com>',
+          from: 'Atelier <support@fulatelier.com>',
           to: process.env.ADMIN_EMAIL || 'admin@example.com',
           subject: `New Consulting Inquiry: ${projectType}`,
           html: `
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest) {
         });
 
         await resend.emails.send({
-          from: 'ATELIER <support@fulatelier.com>',
+          from: 'Atelier <support@fulatelier.com>',
           to: email,
           subject: 'Thank You for Your Inquiry',
           html: `
