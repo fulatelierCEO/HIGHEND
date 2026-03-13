@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Atelier <onboarding@resend.dev>",
+            from: "Atelier <support@fulatelier.com>",
             to: "your-email@example.com",
             subject: `New Inquiry: ${projectType} (${budget})`,
             html: `
@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Atelier <onboarding@resend.dev>",
+            from: "Atelier <support@fulatelier.com>",
             to: email,
             subject: "Your Inquiry at Atelier",
             html: `

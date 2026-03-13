@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (process.env.RESEND_API_KEY) {
       try {
         await resend.emails.send({
-          from: 'ATELIER <onboarding@resend.dev>',
+          from: 'ATELIER <support@fulatelier.com>',
           to: process.env.ADMIN_EMAIL || 'admin@example.com',
           subject: `New Consulting Inquiry: ${projectType}`,
           html: `
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         });
 
         await resend.emails.send({
-          from: 'ATELIER <onboarding@resend.dev>',
+          from: 'ATELIER <support@fulatelier.com>',
           to: email,
           subject: 'Thank You for Your Inquiry',
           html: `
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
                             </p>
 
                             <div style="text-align: center; margin: 48px 0;">
-                              <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://atelier.com'}/products"
+                              <a href="https://fulatelier.com/products"
                                  style="display: inline-block; background-color: #1A1A1A; color: #FFFFFF; text-decoration: none; padding: 16px 48px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 400; transition: background-color 0.3s;">
                                 View Our Work
                               </a>
