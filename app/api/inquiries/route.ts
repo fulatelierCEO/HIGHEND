@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (process.env.RESEND_API_KEY && process.env.RESEND_DOMAIN_VERIFIED === 'true') {
+    if (process.env.RESEND_API_KEY) {
       try {
+        console.log('Attempting to send email via Resend...');
         await resend.emails.send({
           from: 'Atelier <support@fulatelier.com>',
           to: process.env.ADMIN_EMAIL || 'admin@example.com',
@@ -177,9 +178,8 @@ export async function POST(request: NextRequest) {
         });
       } catch (emailError) {
         console.error('Email error:', emailError);
+        console.error('Full Resend Error details:', emailError);
       }
-    } else if (process.env.RESEND_API_KEY && process.env.RESEND_DOMAIN_VERIFIED !== 'true') {
-      console.log('Resend API key found but domain not verified. Skipping email send.');
     }
 
     return NextResponse.json({ success: true, lead });
