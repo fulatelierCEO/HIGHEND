@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -12,55 +12,43 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Incoming Inquiry Body:', body);
+    const { name, email, projectType, budget, message } = body;
 
-    const { name, email, projectType, budget, message, projectBrief } = body;
-
-    const finalMessage = message || projectBrief;
-    const finalBudget = budget || body.budgetRange;
-
-    const missingFields = [];
-    if (!name) missingFields.push('name');
-    if (!email) missingFields.push('email');
-    if (!projectType) missingFields.push('projectType');
-    if (!finalBudget) missingFields.push('budget');
-    if (!finalMessage) missingFields.push('message');
-
-    if (missingFields.length > 0) {
+    if (!name || !email || !projectType || !budget || !message) {
       return NextResponse.json(
-        { error: `Missing field: ${missingFields.join(', ')}` },
+        { error: 'All fields are required' },
         { status: 400 }
       );
     }
 
     const { data: lead, error: dbError } = await supabase
-      .from('inquiries')
+      .from('leads')
       .insert([
         {
-          full_name: name,
-          email_address: email,
+          client_name: name,
+          client_email: email,
+          project_intent: projectType,
           project_type: projectType,
-          budget_range: finalBudget,
-          project_brief: finalMessage,
+          budget_range: budget,
+          message: message,
+          status: 'new',
         },
       ])
       .select()
       .single();
 
     if (dbError) {
-      console.error('Database error saving inquiry:', dbError);
-      console.error('Error details:', JSON.stringify(dbError, null, 2));
+      console.error('Database error:', dbError);
       return NextResponse.json(
-        { error: 'Failed to save inquiry', details: dbError.message },
+        { error: 'Failed to save inquiry' },
         { status: 500 }
       );
     }
 
     if (process.env.RESEND_API_KEY) {
       try {
-        console.log('Attempting to send email via Resend...');
         await resend.emails.send({
-          from: 'Atelier <support@fulatelier.com>',
+          from: 'ATELIER <onboarding@resend.dev>',
           to: process.env.ADMIN_EMAIL || 'admin@example.com',
           subject: `New Consulting Inquiry: ${projectType}`,
           html: `
@@ -76,12 +64,12 @@ export async function POST(request: NextRequest) {
               <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #737373; font-weight: 300; margin-bottom: 8px;">Project Information</h2>
                 <p style="margin: 4px 0;"><strong>Type:</strong> ${projectType}</p>
-                <p style="margin: 4px 0;"><strong>Budget:</strong> ${finalBudget}</p>
+                <p style="margin: 4px 0;"><strong>Budget:</strong> ${budget}</p>
               </div>
 
               <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #737373; font-weight: 300; margin-bottom: 8px;">Project Brief</h2>
-                <p style="line-height: 1.6; white-space: pre-wrap;">${finalMessage}</p>
+                <p style="line-height: 1.6; white-space: pre-wrap;">${message}</p>
               </div>
 
               <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #e5e5e5; font-size: 12px; color: #737373;">
@@ -93,7 +81,7 @@ export async function POST(request: NextRequest) {
         });
 
         await resend.emails.send({
-          from: 'Atelier <support@fulatelier.com>',
+          from: 'ATELIER <onboarding@resend.dev>',
           to: email,
           subject: 'Thank You for Your Inquiry',
           html: `
@@ -120,7 +108,7 @@ export async function POST(request: NextRequest) {
                             <div style="width: 60px; height: 1px; background-color: #1A1A1A; margin: 32px 0;"></div>
 
                             <p style="font-size: 16px; line-height: 1.8; color: #1A1A1A; margin: 0 0 24px 0; font-weight: 300;">
-                              We've received your inquiry for <strong style="font-weight: 500;">${projectType}</strong> with a budget range of <strong style="font-weight: 500;">${finalBudget}</strong>.
+                              We've received your inquiry for <strong style="font-weight: 500;">${projectType}</strong> with a budget range of <strong style="font-weight: 500;">${budget}</strong>.
                             </p>
 
                             <p style="font-size: 16px; line-height: 1.8; color: #1A1A1A; margin: 0 0 32px 0; font-weight: 300;">
@@ -132,7 +120,7 @@ export async function POST(request: NextRequest) {
                                 Your Project Brief
                               </p>
                               <p style="font-family: 'Playfair Display', serif; font-size: 15px; line-height: 1.7; color: #1A1A1A; margin: 0; white-space: pre-wrap; font-weight: 400;">
-                                ${finalMessage}
+                                ${message}
                               </p>
                             </div>
 
@@ -141,7 +129,7 @@ export async function POST(request: NextRequest) {
                             </p>
 
                             <div style="text-align: center; margin: 48px 0;">
-                              <a href="https://fulatelier.com/products"
+                              <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://atelier.com'}/products"
                                  style="display: inline-block; background-color: #1A1A1A; color: #FFFFFF; text-decoration: none; padding: 16px 48px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 400; transition: background-color 0.3s;">
                                 View Our Work
                               </a>
@@ -178,7 +166,6 @@ export async function POST(request: NextRequest) {
         });
       } catch (emailError) {
         console.error('Email error:', emailError);
-        console.error('Full Resend Error details:', emailError);
       }
     }
 

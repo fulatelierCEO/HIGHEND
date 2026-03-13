@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { LayoutDashboard, Package, Video, Users, LogOut, Loader as Loader2, Database } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { LayoutDashboard, Package, Video, Users, LogOut, Loader as Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,8 +15,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     async function checkAdminAccess() {
@@ -26,12 +23,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         if (!user) {
           router.push('/');
-          return;
-        }
-
-        if (user.email === 'fulatelier@gmail.com') {
-          setIsAdmin(true);
-          setLoading(false);
           return;
         }
 
@@ -61,64 +52,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.push('/');
-  }
-
-  async function handleSyncDatabase() {
-    setSyncing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast({
-          title: 'Error',
-          description: 'No authenticated user found',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', user.email)
-        .maybeSingle();
-
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            is_subscribed: false,
-          });
-
-        if (insertError) {
-          toast({
-            title: 'Sync Failed',
-            description: insertError.message,
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Success',
-            description: 'Profile created successfully',
-          });
-        }
-      } else {
-        toast({
-          title: 'Already Synced',
-          description: 'Your profile already exists in the database',
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to sync database',
-        variant: 'destructive',
-      });
-    } finally {
-      setSyncing(false);
-    }
   }
 
   if (loading) {
@@ -171,15 +104,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </ul>
         </nav>
 
-        <div className="p-6 border-t border-[#1A1A1A]/10 space-y-2">
-          <button
-            onClick={handleSyncDatabase}
-            disabled={syncing}
-            className="flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-widest text-[#1A1A1A]/60 hover:text-[#1A1A1A] hover:bg-[#1A1A1A]/5 transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Database className="w-4 h-4" />
-            {syncing ? 'Syncing...' : 'Sync Database'}
-          </button>
+        <div className="p-6 border-t border-[#1A1A1A]/10">
           <button
             onClick={handleSignOut}
             className="flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-widest text-[#1A1A1A]/60 hover:text-[#1A1A1A] hover:bg-[#1A1A1A]/5 transition-colors w-full"

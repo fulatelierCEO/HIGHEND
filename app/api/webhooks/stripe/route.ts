@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         });
 
         await resend.emails.send({
-          from: 'Atelier <support@fulatelier.com>',
+          from: `Atelier <${process.env.ADMIN_EMAIL}>`,
           to: customerEmail,
           subject: `Thank you for your purchase - ${product.name}`,
           html: emailHtml,
