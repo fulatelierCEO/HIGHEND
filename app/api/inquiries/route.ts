@@ -12,13 +12,18 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, projectType, budget, message } = body;
+
+    const fullName = body.fullName || body.full_name || body.name;
+    const email = body.email;
+    const projectType = body.projectType || body.project_type;
+    const budget = body.budget || body.budget_range;
+    const message = body.message;
 
     const { data: lead, error: dbError } = await supabase
       .from('inquiries')
       .insert([
         {
-          client_name: name,
+          client_name: fullName,
           client_email: email,
           project_type: projectType,
           budget_range: budget,
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      console.error('❌ Database error:', dbError);
+      console.error('Database Error:', dbError);
       return NextResponse.json(
         { error: 'Failed to save inquiry' },
         { status: 500 }
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest) {
 
             <div style="margin-bottom: 32px;">
               <h2 style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #737373; font-weight: 300; margin-bottom: 8px;">Client Details</h2>
-              <p style="margin: 4px 0;"><strong>Name:</strong> ${name}</p>
+              <p style="margin: 4px 0;"><strong>Name:</strong> ${fullName}</p>
               <p style="margin: 4px 0;"><strong>Email:</strong> ${email}</p>
             </div>
 
@@ -97,7 +102,7 @@ export async function POST(request: NextRequest) {
                       <tr>
                         <td style="padding: 64px 48px;">
                           <h1 style="font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 400; color: #1A1A1A; margin: 0 0 16px 0; letter-spacing: -0.02em; line-height: 1.2;">
-                            Thank You,<br>${name}
+                            Thank You,<br>${fullName}
                           </h1>
 
                           <div style="width: 60px; height: 1px; background-color: #1A1A1A; margin: 32px 0;"></div>
