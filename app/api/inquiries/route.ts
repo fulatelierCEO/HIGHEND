@@ -23,11 +23,11 @@ export async function POST(request: NextRequest) {
       .from('inquiries')
       .insert([
         {
-          client_name: fullName,
-          client_email: email,
+          full_name: fullName,
+          email_address: email,
           project_type: projectType,
           budget_range: budget,
-          message: message,
+          project_brief: message,
           status: 'new',
         },
       ])
