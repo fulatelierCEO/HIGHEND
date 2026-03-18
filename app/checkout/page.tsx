@@ -49,8 +49,8 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseUrl = process.env.SB_URL;
+      const supabaseAnonKey = process.env.SB_ANON_KEY;
 
       const items = cartItems.map(item => ({
         id: item.product.id,
