@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
+console.log('Using URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dbError) {
-      console.error('Database Error:', dbError);
+      console.error('FULL DATABASE ERROR:', JSON.stringify(dbError, null, 2));
       return NextResponse.json(
         { error: 'Failed to save inquiry' },
         { status: 500 }
